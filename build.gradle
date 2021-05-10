@@ -1,0 +1,138 @@
+buildscript {
+    repositories {
+        jcenter()
+        google()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:3.5.3'
+        classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.14'
+        classpath 'digital.wup:android-maven-publish:3.6.3'
+    }
+}
+
+
+allprojects {
+    repositories {
+        jcenter()
+        google()
+    }
+}
+
+apply plugin: 'com.android.library'
+
+android {
+    compileSdkVersion 29
+    buildToolsVersion '29.0.3'
+    defaultConfig {
+        minSdkVersion 14
+        targetSdkVersion 29
+    }
+    lintOptions {
+        abortOnError false
+    }
+    compileOptions {
+        targetCompatibility 1.8
+        sourceCompatibility 1.8
+    }
+}
+
+apply plugin: 'com.google.protobuf'
+
+protobuf {
+    protoc {
+        artifact = 'com.google.protobuf:protoc:3.11.4'
+    }
+    plugins {
+        javalite {
+            // The codegen for lite comes as a separate artifact
+            artifact = 'com.google.protobuf:protoc-gen-javalite:3.0.0'
+        }
+    }
+    generateProtoTasks {
+        all().each { task ->
+            task.builtins {
+                // In most cases you don't need the full Java output
+                // if you use the lite output.
+                remove java
+            }
+            task.plugins {
+                javalite {}
+            }
+        }
+    }
+}
+
+// Creates the source jar for release to maven central.
+task sourceJar(type: Jar) {
+    classifier "sources"
+    from android.sourceSets.main.java.srcDirs
+}
+
+// Creates javadoc for the project.
+task javadoc(type: Javadoc) {
+    source = android.sourceSets.main.java.srcDirs
+    exclude "**/AndroidManifest.xml"
+    failOnError false // Currently cannot import android sdk javadoc references so we ignore errors.
+}
+
+// Creates the source javadoc jar for release to maven central.
+task javadocJar(type: Jar) {
+    classifier "javadoc"
+    from javadoc
+}
+apply plugin: 'digital.wup.android-maven-publish'
+apply plugin: 'maven-publish'
+
+// Creates the artifacts for release to maven central.
+publishing {
+    publications {
+        mavenAar(MavenPublication) {
+            groupId 'com.google.android.apps.common.testing.accessibility.framework'
+            artifactId 'accessibility-test-framework'
+            version '3.1.1'
+            from components.android
+            artifact sourceJar
+            artifact javadocJar
+            pom {
+                name = 'Accessibility Test Framework'
+                description = 'Library used to test for common accessibility issues.'
+                url = 'https://github.com/google/Accessibility-Test-Framework-for-Android'
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                        distribution = 'repo'
+                    }
+                }
+                developers {
+                    developer {
+                        name = 'Casey Burkhardt'
+                        email = 'caseyburkhardt@google.com'
+                        organization = 'Google LLC'
+                        organizationUrl = 'https://www.google.com'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:git@github.com:google/Accessibility-Test-Framework-for-Android.git'
+                    developerConnection = 'scm:git:git@github.com:google/Accessibility-Test-Framework-for-Android.git'
+                    url = 'https://github.com/google/Accessibility-Test-Framework-for-Android'
+                }
+            }
+        }
+    }
+}
+
+dependencies {
+    implementation 'com.google.protobuf:protobuf-lite:3.0.1'
+    implementation 'androidx.core:core:1.0.0'
+    implementation 'com.google.android.material:material:1.2.0-rc01'
+    implementation 'com.google.guava:guava:28.2-android'
+    implementation 'org.checkerframework:checker:3.1.1'
+    implementation 'org.hamcrest:hamcrest-library:2.2'
+    implementation 'org.hamcrest:hamcrest-core:2.2'
+    implementation 'org.jsoup:jsoup:1.12.2'
+}
+
+clean {
+    delete 'src/main/generated'
+}

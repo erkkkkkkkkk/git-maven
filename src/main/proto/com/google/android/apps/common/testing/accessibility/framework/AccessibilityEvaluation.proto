@@ -1,0 +1,133 @@
+/*
+ * Copyright (C) 2017 Google Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ */
+
+syntax = "proto2";
+
+package com.google.android.apps.common.testing.accessibility.framework.proto;
+
+import "com/google/android/apps/common/testing/accessibility/framework/uielement/AccessibilityHierarchy.proto";
+
+option java_package = "com.google.android.apps.common.testing.accessibility.framework.proto";
+option java_outer_classname = "AccessibilityEvaluationProtos";
+
+// Describes a single-hierarchy accessibility evaluation by ATF
+// Next index: 3
+message AccessibilityEvaluation {
+  optional com.google.android.apps.common.testing.accessibility.framework
+      .uielement.proto.AccessibilityHierarchyProto hierarchy = 1;
+  repeated AccessibilityHierarchyCheckResultProto results = 2;
+}
+
+// Describes an AccessibilityHierarchyCheckResult
+// Next index: 7
+message AccessibilityHierarchyCheckResultProto {
+  optional string source_check_class = 1;
+  optional int32 result_id = 2;
+  optional ResultTypeProto result_type = 3;
+  optional int64 hierarchy_source_id = 4;
+  optional MetadataProto metadata = 5;
+  repeated AnswerProto answers = 6;
+}
+
+// Other than UNKNOWN, this should mirror
+// AccessibilityCheckResult.AccessibilityCheckResultType
+// Next index: 7
+enum ResultTypeProto {
+  UNKNOWN = 0;
+  ERROR = 1;
+  WARNING = 2;
+  INFO = 3;
+  RESOLVED = 6;
+  NOT_RUN = 4;
+  SUPPRESSED = 5;
+}
+
+// Proto describing a Metadata, used by AccessibilityHierarchyCheckResult to
+// store parameters used to generate result messages
+// Next index: 2
+message MetadataProto {
+  map<string, TypedValueProto> metadata_map = 1;
+}
+
+// Proto describing a list of string.
+// Next index: 2
+message StringListProto {
+  repeated string values = 1;
+}
+
+// Proto describing a list of int.
+// Next index: 2
+message IntListProto {
+  repeated int32 values = 1;
+}
+
+// Proto describing raw metadata information and its associated type
+// Next index: 13
+message TypedValueProto {
+  // Once a TypeProto is defined here, it must not be removed and its value
+  // must not be changed. Additions are permitted at the end of enum. Data may
+  // be persisted using these values, so incompatible changes may result in
+  // corruption during deserialization.
+  // Next index: 12
+  enum TypeProto {
+    UNKNOWN = 0;
+    BOOLEAN = 1;
+    BYTE = 2;
+    SHORT = 3;
+    CHAR = 4;
+    INT = 5;
+    FLOAT = 6;
+    LONG = 7;
+    DOUBLE = 8;
+    STRING = 9;
+    STRING_LIST = 10;
+    INT_LIST = 11;
+  }
+
+  optional TypeProto type = 1;
+  oneof value {
+    bool boolean_value = 2;
+    bytes byte_value = 3;
+    bytes short_value = 4;
+    bytes char_value = 5;
+    int32 int_value = 6;
+    float float_value = 7;
+    int64 long_value = 8;
+    double double_value = 9;
+    string string_value = 10;
+    StringListProto string_list_value = 11;
+    IntListProto int_list_value = 12;
+  }
+}
+
+// Describes a Question
+// Next index: 7
+message QuestionProto {
+  optional int32 question_id = 1;
+  optional string question_type_class = 2;
+  optional string answer_type_class = 3;
+  optional string question_handler_class = 4;
+  optional AccessibilityHierarchyCheckResultProto original_result = 5;
+  optional MetadataProto metadata = 6;
+}
+
+// Describes an Answer
+// Next index: 4
+message AnswerProto {
+  optional string answer_type_class = 1;
+  optional QuestionProto question = 2;
+  optional MetadataProto metadata = 3;
+}
